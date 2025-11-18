@@ -30,14 +30,14 @@ function get_system_info() {
     mem_total_gb=$(awk "BEGIN{printf \"%.2f\", $mem_total_kb/1024/1024}")
 
     # GPU (if NVIDIA)
-    if command -v nvidia-smi &>/dev/null; then
-        gpu_info=$(nvidia-smi --query-gpu=name,memory.total --format=csv,noheader,nounits 2>/dev/null)
-        gpu_model=$(echo "$gpu_info" | awk -F, '{print $1}' | xargs)
-        gpu_ram_gb=$(echo "$gpu_info" | awk -F, '{print $2}' | xargs)
-    else
+    #if command -v nvidia-smi &>/dev/null; then
+    #    gpu_info=$(nvidia-smi --query-gpu=name,memory.total --format=csv,noheader,nounits 2>/dev/null)
+    #    gpu_model=$(echo "$gpu_info" | awk -F, '{print $1}' | xargs)
+    #    gpu_ram_gb=$(echo "$gpu_info" | awk -F, '{print $2}' | xargs)
+    #else
         gpu_model="None"
         gpu_ram_gb="0"
-    fi
+    #fi
 
     # OS
     if command -v lsb_release &>/dev/null; then
