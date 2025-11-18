@@ -1,0 +1,27 @@
+[
+  {
+    "id": 1,
+    "description": "Simple explanation",
+    "prompt": "Explain quantum computing in simple terms."
+  },
+  {
+    "id": 2,
+    "description": "Python function",
+    "prompt": "Write a Python function to reverse a string."
+  },
+  {
+    "id": 3,
+    "description": "AI ethics",
+    "prompt": "What are the latest developments in AI ethics?"
+  },
+  {
+    "id": 4,
+    "description": "Algorithmic complexity",
+    "prompt": "Explain Big O notation with an example."
+  },
+  {
+    "id": 5,
+    "description": "Cooking recipe",
+    "prompt": "Give me a recipe for homemade pizza."
+  }
+]
