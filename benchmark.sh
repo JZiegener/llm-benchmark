@@ -7,6 +7,7 @@
 
 set -euo pipefail
 
+
 # ------------------------------------------------------------------
 # Configuration – adjust if you store the files elsewhere
 # ------------------------------------------------------------------
@@ -21,8 +22,8 @@ TMP_RESULTS="tmp_results.json"
 function get_system_info() {
     # CPU
     cpu_model=$(lscpu | awk -F: '/Model name/ {print $2}' | xargs)
-    cpu_cores=$(lscpu | awk -F: '/^CPU\(s\)/ {print $2}' | xargs)
-    cpu_mhz=$(lscpu | awk -F: '/CPU MHz/ {print $2}' | xargs | awk '{printf "%.1f", $1}')
+    cpu_cores=$(lscpu |  awk '/^CPU\(s\):[[:space:]]*[0-9]+/ {print $2}' | xargs)
+    cpu_mhz=$(lscpu | awk -F: '/CPU max MHz/ {print $2}' | xargs | awk '{printf "%.1f", $1}')
 
     # RAM
     mem_total_kb=$(grep MemTotal /proc/meminfo | awk '{print $2}')
@@ -107,7 +108,8 @@ echo "=== Ollama LLM Benchmark ==="
 
 # 1. Grab system info
 sys_info=$(get_system_info)
-echo "System: $(echo "$sys_info" | jq -r '. | .cpu_model, .mem_total_gb, .gpu_model')"
+echo $sys_info
+#echo "System: $(echo "$sys_info" | jq -r '. | .cpu_model, .mem_total_gb, .gpu_model')"
 
 # 2. Load the banks
 prompt_count=$(jq 'length' "$PROMPTS_FILE")
@@ -120,7 +122,7 @@ echo "  Models    : $model_count"
 > "$TMP_RESULTS"
 
 # 3. Loop over models ➜ prompts
-for model in $(jq -r '.[].' "$MODELS_FILE"); do
+for model in $(jq -r '.[]' "$MODELS_FILE"); do
     echo "-> Model: $model"
 
     # Pull the model if it isn’t already present
@@ -128,12 +130,16 @@ for model in $(jq -r '.[].' "$MODELS_FILE"); do
         { echo "   ❌ Model $model not found locally – pulling…" &&
           ollama pull "$model"; }
 
-    # Run all prompts for this model
-    for prompt_id in $(seq 1 $(jq 'length' "$PROMPTS_FILE")); do
-        prompt=$(jq -r ".[$((prompt_id-1))].prompt" "$PROMPTS_FILE")
-        res=$(benchmark_once "$model" "$prompt_id" "$prompt")
-        echo "$res" >> "$TMP_RESULTS"
-    done
+    if ollama show "$model"  &>/dev/null; then
+        # Run all prompts for this model
+        for prompt_id in $(seq 1 $(jq 'length' "$PROMPTS_FILE")); do
+            prompt=$(jq -r ".[$((prompt_id-1))].prompt" "$PROMPTS_FILE")
+            res=$(benchmark_once "$model" "$prompt_id" "$prompt")
+            echo "$res" >> "$TMP_RESULTS"
+        done
+    else
+        echo "Model $model could not be pulled. Skipping" 
+    fi
 done
 
 # 4. Build final JSON
